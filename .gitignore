@@ -1,0 +1,12 @@
+*.pyc
+*.tif
+
+/docs
+/icebergs
+/pngs
+/samples
+/sea_ice
+/tifs
+
+
+local_config.py
