@@ -20,7 +20,14 @@ from local_config import *
 # Sub-image sampling size K x K
 K = 50
 
-# Images to sample from each poly
+
+LABELS = {
+	"L": 0,
+	"W": 1,
+	"I": 2,
+}
+
+TRAIN_SIZE = 0.8
 
 
 ####################################################################
@@ -28,6 +35,8 @@ K = 50
 # 			Directories
 # 
 ####################################################################
+
+CKPT_DIR = ROOT_DIR + "checkpoints/"
 
 SAMPLING_DIR = ROOT_DIR + "samples/"
 
