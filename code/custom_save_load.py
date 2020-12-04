@@ -4,7 +4,6 @@ Unified place to put save and load model code so that model nomenclature is the 
 
 """
 import torch
-import csv
 import numpy as np
 
 

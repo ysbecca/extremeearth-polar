@@ -24,7 +24,7 @@ from alexnet import AlexNet
 from local_config import *
 from global_config import *
 
-
+from custom_save_load import *
 
 # Set up training arguments and parse
 parser = argparse.ArgumentParser(description='Training network')
@@ -133,7 +133,8 @@ for epoch in range(args.epochs):
 			print('Epoch / Batch [%d / %d] - Loss: %.3f - Error: %.3f' %
 				(epoch + 1, i + 1, running_loss / 100, running_error / 100))
 
-	if epoch % save_interval == (save_interval - 1):
+
+	if epoch % args.save_interval == (args.save_interval - 1):
 		model_name = get_model_name(args.run_number, epoch)
 		torch.save(model.state_dict(), CKPT_DIR + model_name + ".ckpt")
 		text = "SAVED"
