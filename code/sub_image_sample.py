@@ -48,7 +48,9 @@ def get_label(shape_data, spatial_coords):
 meta = []
 
 # Local limitation
-shp_files = [shp_files[0]]
+# shp_files = [shp_files[0]]
+
+idx = 0  # unique sub-sample image idx
 
 for shpfile in shp_files:
 
@@ -67,7 +69,7 @@ for shpfile in shp_files:
 
 		# Travel along the src dimensions
 		x_pos = 0
-		idx = 0  # unique sub-sample image idx
+
 		while x_pos < src.width:
 
 			y_pos = 0
