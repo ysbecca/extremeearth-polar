@@ -110,7 +110,7 @@ test_loader = torch.utils.data.DataLoader(
 ####################################################################
 
 
-model = AlexNet()
+model = AlexNet().to(device)
 criterion = nn.CrossEntropyLoss()
 
 # Stochastic gradient descent
@@ -151,7 +151,6 @@ def test_model(model, epoch):
 for epoch in range(args.epochs):
 	test_model(model, epoch)
 
-	
 	for i, data in enumerate(train_loader, 0):
 		images, labels, _ = data
 		images, labels = images.to(device), labels.to(device)
