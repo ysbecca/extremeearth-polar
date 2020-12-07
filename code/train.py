@@ -2,7 +2,7 @@
 
 Train a model on Polar patch data
 
-python train.py --run_number 0 --epochs 2 --save_interval 1
+python train.py --run_number 0 --epochs 3 --save_interval 1
 
 """
 
@@ -65,7 +65,7 @@ for arg in vars(args):
 
 ####################################################################
 # 
-# 			Load the dataset
+# 			Load the datasets
 # 
 ####################################################################
 
@@ -86,6 +86,17 @@ train_loader = torch.utils.data.DataLoader(
     num_workers=2
 )
 
+test_set = PolarPatch(
+	split='train',
+	transform=data_transform
+)
+
+test_loader = torch.utils.data.DataLoader(
+    test_set,
+    batch_size=args.batch_size,
+    shuffle=False,
+    num_workers=2
+)
 
 ####################################################################
 # 
@@ -104,6 +115,25 @@ optimizer = optim.SGD(
 	weight_decay=0.0005,
 	momentum=0.9,
 )
+
+
+def test_model(model, epoch):
+	
+	correct = 0
+	total = 0
+	with torch.no_grad():
+
+		for i, data in enumerate(test_loader, 0):
+			images, labels, _ = data
+			images, labels = images.to(device), labels.to(device)
+
+			outputs = model(images)
+			predicted = outputs.argmax(dim=1)
+
+			total += labels.size(0)
+			correct += (predicted == labels).sum().item()
+
+	print('E -', epoch, '- test acc: %d %%' % (100 * correct / total))
 
 
 ####################################################################
@@ -139,6 +169,9 @@ for epoch in range(args.epochs):
 		torch.save(model.state_dict(), CKPT_DIR + model_name + ".ckpt")
 		text = "SAVED"
 		print(F"{text:>20} {model_name}.ckpt")
+
+		# Use save interval as test interval too for now
+		test_model(model, epoch)
 
 
 
