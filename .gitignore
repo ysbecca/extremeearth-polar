@@ -10,3 +10,7 @@
 
 
 local_config.py
+
+.ipynb_checkpoints/
+checkpoints/
+sample_meta/
