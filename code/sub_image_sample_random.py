@@ -2,6 +2,8 @@
 
 Saves image patches and their labels, in directories
 
+Randomly selects positions until quota filled (meant for non-comprehensive sampling)
+
 """
 
 
@@ -20,6 +22,9 @@ import numpy as np
 from local_config import *
 from global_config import *
 
+# timeout for some images might not have enough of that class
+MAX_TRIES = 1200
+
 
 # one by one read in Shapefiles
 shp_files = [f for f in listdir(SHAPEFILE_DIR) if isfile(join(SHAPEFILE_DIR, f)) and ".shp" in f]
@@ -29,7 +34,7 @@ print("Shapefiles found:       ", len(shp_files))
 print("GeoTIFF files found:    ", len(tiff_files))
 
 # per image
-samples_per_label = 10
+samples_per_label = 100
 
 # function to determine whether a spatial coordinate is in any of the listed shapes
 def get_label(shape_data, spatial_coords):
@@ -46,13 +51,24 @@ def get_label(shape_data, spatial_coords):
 # each row corresponds to a sub_image - image ix, (x, y) for top left corner, label
 meta = []
 
-# local testing env limitation
-# shp_files = [shp_files[0]]
+idx = 7520  # unique sub-sample image idx
 
-idx = 0  # unique sub-sample image idx
+
+def is_quota_met(count_dict):
+	for val in count_dict.values():
+		if val < samples_per_label:
+			return False
+	return True
+
+
+
+# Local testing constraint
+# shp_files = shp_files[:2]
+
+
 
 for shpfile in shp_files:
-
+	tries = 0
 	shp_id = shpfile.split("_")[-1][:-4].upper()
 	shape_data = gpd.read_file(SHAPEFILE_DIR + shpfile)
 
@@ -73,33 +89,34 @@ for shpfile in shp_files:
 		# get numpy version for sampling sub_image
 		np_tiff = np.rollaxis(src.read(), 0, 3)
 
-		# travel along the src dimensions
-		x_pos = 0
+		while not is_quota_met(sample_count) and tries < MAX_TRIES:
 
-		while x_pos < src.width:
+			tries += 1
 
-			y_pos = 0
-			while y_pos < src.height:
+			# select random x, y in src.width, src.height
+			x_pos = np.random.randint(0, src.width)
+			y_pos = np.random.randint(0, src.height)
 
-				spatial_coords = src.transform * (x_pos + int(K/2), y_pos + int(K/2))
+			spatial_coords = src.transform * (x_pos + int(K/2), y_pos + int(K/2))
 
-				# is this position in a shape?
-				label = get_label(shape_data, spatial_coords)
-				if label and sample_count[label] < samples_per_label:
-					sub_im = np_tiff[x_pos:(x_pos + K), y_pos:(y_pos + K)]
+			# is this position in a shape?
+			label = get_label(shape_data, spatial_coords)
+			if label and sample_count[label] < samples_per_label:
+				sub_im = np_tiff[x_pos:(x_pos + K), y_pos:(y_pos + K)]
 
-					if sub_im.shape == (K, K, 3):
-						cv2.imwrite(SAMPLING_DIR + str(idx) + ".png", sub_im)
-						meta.append([idx, (x_pos, y_pos), label])
-						idx += 1
+				if sub_im.shape == (K, K, 3):
+					cv2.imwrite(SAMPLING_DIR + str(idx) + ".png", sub_im)
+					meta.append([idx, x_pos, y_pos, label])
+					idx += 1
 
-						sample_count[label] += 1
+					sample_count[label] += 1
 
-				y_pos += K
-			x_pos += K
+
+
+	print("Number of tries:", tries)
 
 
 print("")
 print("Final idx:              ", idx)
 print("Meta length:            ", len(meta))
-np.save(META_DIR + "meta.npy", np.array(meta))
+np.save(META_DIR + "meta3.npy", np.array(meta))

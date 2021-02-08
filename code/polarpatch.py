@@ -32,10 +32,10 @@ class PolarPatch(Dataset):
                    
 
         self.images = range(len(meta))
-        self.coords = [row[1] for row in meta]
+        self.coords = [(row[1], row[2]) for row in meta]
 
         # Targets in integer form
-        self.targets = [LABELS[row[2]] for row in meta]
+        self.targets = [LABELS[row[3]] for row in meta]
         self.transform = transform
 
 

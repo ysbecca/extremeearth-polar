@@ -18,7 +18,7 @@ from local_config import *
 
 
 # Sub-image sampling size K x K
-K = 50
+K = 64
 
 
 LABELS = {
