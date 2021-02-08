@@ -4,6 +4,9 @@ Saves image patches and their labels, in directories
 
 Randomly selects positions until quota filled (meant for non-comprehensive sampling)
 
+
+python sub_image_sample_random.py --max_tries 1000 --samples_per_label 200
+
 """
 
 
@@ -22,19 +25,30 @@ import numpy as np
 from local_config import *
 from global_config import *
 
-# timeout for some images might not have enough of that class
-MAX_TRIES = 1200
+
+# Set up training arguments and parse
+parser = argparse.ArgumentParser(description='Sample patches.')
+
+
+parser.add_argument(
+    '--max_tries', type=int, default=1200,
+    help='Timeout for some images might not have enough of that class')
+parser.add_argument(
+    '--samples_per_label', type=int, default=100,
+    help='Max samples per label per SAR image to sample')
 
 
 # one by one read in Shapefiles
 shp_files = [f for f in listdir(SHAPEFILE_DIR) if isfile(join(SHAPEFILE_DIR, f)) and ".shp" in f]
 tiff_files = [f for f in listdir(TIFF_DIR) if isfile(join(TIFF_DIR, f)) and ".tif" in f]
 
+
+
 print("Shapefiles found:       ", len(shp_files))
 print("GeoTIFF files found:    ", len(tiff_files))
 
-# per image
-samples_per_label = 100
+
+
 
 # function to determine whether a spatial coordinate is in any of the listed shapes
 def get_label(shape_data, spatial_coords):
@@ -56,7 +70,7 @@ idx = 7520  # unique sub-sample image idx
 
 def is_quota_met(count_dict):
 	for val in count_dict.values():
-		if val < samples_per_label:
+		if val < args.samples_per_label:
 			return False
 	return True
 
@@ -89,7 +103,7 @@ for shpfile in shp_files:
 		# get numpy version for sampling sub_image
 		np_tiff = np.rollaxis(src.read(), 0, 3)
 
-		while not is_quota_met(sample_count) and tries < MAX_TRIES:
+		while not is_quota_met(sample_count) and tries < args.max_tries:
 
 			tries += 1
 
@@ -101,7 +115,7 @@ for shpfile in shp_files:
 
 			# is this position in a shape?
 			label = get_label(shape_data, spatial_coords)
-			if label and sample_count[label] < samples_per_label:
+			if label and sample_count[label] < args.samples_per_label:
 				sub_im = np_tiff[x_pos:(x_pos + K), y_pos:(y_pos + K)]
 
 				if sub_im.shape == (K, K, 3):
@@ -114,6 +128,8 @@ for shpfile in shp_files:
 
 
 	print("Number of tries:", tries)
+
+
 
 
 print("")
