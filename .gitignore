@@ -8,6 +8,7 @@
 /sea_ice
 /tifs
 
+.DS_Store
 
 local_config.py
 
